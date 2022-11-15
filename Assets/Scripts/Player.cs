@@ -2,56 +2,69 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player 
+public class Player : MonoBehaviour
 {
-    private int _health; // this
-    public int Health {
-        get {
-            return _health;
-        }
-        set{
-           _health = value; 
-        }
+    [SerializeField]
+    private float moveForce = 10f;
+    [SerializeField]
+    private float jumpForce = 11f;
+    private float movimentX;
+
+    private bool isGrounded;
+    private string GROUND_TAG = "Ground";
+ 
+    private Rigidbody2D myBody;
+    private SpriteRenderer sr;
+    private Animator anim;
+    private string WALK_ANIMATION = "Walk";
+
+
+    private void Awake() {
+        myBody = GetComponent<Rigidbody2D>();
+        sr = GetComponent<SpriteRenderer>();
+        anim = GetComponent<Animator>();     
     }
-    
-    private int _power;
-    public int Power {
-        get {
-            return _power;
-        }
-        set {
-            _power = value;
-        }
+    // Update is called once per frame
+    void Update()
+    {
+        PlayerMoveKeyboard();  
+        AnimatePlayer();
+        PlayerJump();
     }
-  
-    private string _name;
-    public string Name {
-        get {
-            return _name;
+
+    void PlayerMoveKeyboard(){
+        movimentX = Input.GetAxisRaw("Horizontal");
+        transform.position += new Vector3(movimentX, 0f, 0f) * Time.deltaTime * moveForce;
+
+    }
+
+    void AnimatePlayer(){
+        if (movimentX > 0){
+            // facing right
+            anim.SetBool(WALK_ANIMATION, true);
+            sr.flipX = false;
+
         }
-        set {
-            _name = value;
+        else if (movimentX < 0){
+            // facing left
+            anim.SetBool(WALK_ANIMATION, true);
+            sr.flipX = true;
+        }
+        else {
+            anim.SetBool(WALK_ANIMATION, false);
         }
     }
 
-    public Player() { }
-    
-    public Player(int health, int power, string name){ 
-        
-        // this.health = health > this.health reffer to the health in the class 
-        Health = health;
-        Power = power;
-        Name = name;        
+    void PlayerJump(){
+        if (Input.GetButtonDown("Jump") && isGrounded){
+            isGrounded = false; 
+            myBody.AddForce(new Vector2(0f, jumpForce), ForceMode2D.Impulse);
+        }
     }
 
-    public void Attack(){
-        Debug.Log(_name + " is attacking!!!");
+    private void OnCollisionEnter2D(Collision2D collision) {
+        if (collision.gameObject.CompareTag(GROUND_TAG)){
+            isGrounded = true;
+        }
     }
-    
-    public void Info(){
-
-        Debug.Log("Health is: " + Health);
-        Debug.Log("Power is: " + Power);
-        Debug.Log("Name is: " + Name);
-    }
-}
+} // class 
